@@ -15,10 +15,12 @@ namespace AutoMapperTutorial
         static async Task Main(string[] args)
         {
             maps = AutoMappers.InitMaps();
+
             //await maps.SimpleMap();
             //await maps.LeszarmazottMap();
             //maps.ConverterMap();
             //await maps.ResolverMap();
+            //maps.GenericMap();
 
             await maps.ProjectToMap();
             Console.ReadKey();

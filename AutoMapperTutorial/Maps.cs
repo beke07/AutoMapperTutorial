@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Shouldly;
 using AutoMapper.QueryableExtensions;
-using AutoMapper.EntityFrameworkCore;
+using AutoMapper.Extensions.ExpressionMapping;
 
 namespace AutoMapperTutorial
 {
@@ -31,12 +31,13 @@ namespace AutoMapperTutorial
             Ember ember;
             using (var context = new ApplicationDbContext())
             {
-                ember = await context.Emberek.FirstAsync();
+                ember = await context.Emberek.FirstAsync(e => e.KeresztNev == "Ferenc");
             }
 
             var emberDto = mapper.Map<EmberDto>(ember);
-            emberDto.Kor.ShouldBe(20);
-            emberDto.Nev.ShouldBe("Kovács József");
+
+            //emberDto.Kor.ShouldBe(6);
+            emberDto.Nev.ShouldBe("Kovács Ferenc");
 
             emberDto.WriteToConsole();
         }
@@ -101,23 +102,41 @@ namespace AutoMapperTutorial
             emberDto.WriteToConsole();
         }
 
+        public void GenericMap()
+        {
+            var source = new Source<int> { Value = 10 };
+            var dest = mapper.Map<Source<int>, Destination<int>>(source);
+            dest.Value.ShouldBe(10);
+
+            var source2 = new Source<string> { Value = "10" };
+            var dest2 = mapper.Map<Source<string>, Destination<int>>(source2);
+            dest2.Value.ShouldBe(10);
+
+            var asd = new Source<string> { Value = Guid.NewGuid().ToString() };
+            var asd2 = mapper.Map<Source<string>, Destination<Guid>>(asd);
+
+            dest.WriteToConsole();
+        }
+
         public async Task ProjectToMap()
         {
             using (var context = new ApplicationDbContext())
             {
-                //var entities = await context.Emberek
-                //    .Where(e => e.Kor == 30)
-                //    .ProjectTo<EmberDto>(mapper.ConfigurationProvider)
-                //    .ToListAsync();
+                var entities = await context.Emberek
+                    .Where(e => e.Kor == 30)
+                    .ProjectTo<EmberDto>(mapper.ConfigurationProvider)
+                    .ToListAsync();
 
-                //context.Emberek.Persist().Remove(new EmberDto()
-                //{
-                //    Kor = 30,
-                //    Nev = "Kovács József",
-                //    ResolveNev = "Kovács József"
-                //});
-
-                //await context.SaveChangesAsync();
+                var data = context.Emberek
+                    .UseAsDataSource(mapper.ConfigurationProvider)
+                    .For<EmberDto>()
+                    .OnEnumerated((dtos) =>
+                    {
+                        foreach (var dto in dtos.Cast<EmberDto>())
+                        {
+                            dto.Valami = "Valami";
+                        }
+                    }).ToList();
             }
         }
     }

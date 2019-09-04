@@ -7,7 +7,7 @@ namespace AutoMapperTutorial.Models
 {
     public class EmberDto
     {
-        public decimal Kor { get; set; }
+        public decimal Korvalamikor { get; set; }
 
         public string Nev { get; set; }
 
